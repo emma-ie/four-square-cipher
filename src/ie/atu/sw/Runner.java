@@ -14,10 +14,11 @@ public class Runner {
 		out.println("************************************************************");
 
 		boolean keepRunning = true;
+		boolean isURL = false;
 		Scanner scanner = new Scanner(System.in);
 		String inputFile = null;
+		String inputURL = null;
 		String outputFile = "./out.txt";
-		// FileWriter out = new FileWriter(fileName);
 		String[] keys = null;
 
 		while (keepRunning) {
@@ -26,9 +27,25 @@ public class Runner {
 			int userChoice = Integer.parseInt(scanner.next());
 			switch (userChoice) {
 				case 1 -> {
-					out.print("Please specify the text file to encrypt: ");
-					inputFile = scanner.next();
-					out.println("Input file is " + inputFile + '\n');
+					out.println("Please select: ");
+					out.println("(1) Input a File");
+					out.println("(2) Input a URL");
+					out.println("(3) Back to Main Menu");
+					int userInputChoice = Integer.parseInt(scanner.next());
+
+					switch (userInputChoice) {
+						case 1 -> {
+							out.print("Please specify the text file to encrypt: ");
+							inputFile = scanner.next();
+							out.println("Input file is " + inputFile + '\n');
+						}
+						case 2 -> {
+							out.print("Please specify the URL to encrypt: ");
+							inputURL = scanner.next();
+							out.println("Input file is " + inputURL + '\n');
+							isURL = true;
+						}
+					}
 				}
 				case 2 -> {
 					out.print("Please specify the output file: ");
@@ -40,17 +57,22 @@ public class Runner {
 					out.println("(1) Input 1 Key");
 					out.println("(2) Input 2 Keys");
 					out.println("(3) Generate Random Key");
+					out.println("(4) Back to Main Menu");
 					int userKeyChoice = Integer.parseInt(scanner.next());
 					String rawKey1;
 					String rawKey2;
-					
-					switch(userKeyChoice) {
+
+					if (userKeyChoice > 4){
+						out.println("Not a valid option. Try again.");
+					}
+
+					switch (userKeyChoice) {
 						case 1 -> {
 							out.println("Input 1 Key: ");
 							String longKey = scanner.next();
 							int longKeyLength = longKey.length();
-							rawKey1 = longKey.substring(0, longKeyLength/2);
-							rawKey2 = longKey.substring(longKeyLength/2, longKeyLength);
+							rawKey1 = longKey.substring(0, longKeyLength / 2);
+							rawKey2 = longKey.substring(longKeyLength / 2, longKeyLength);
 						}
 						case 2 -> {
 							out.println("Please input 2 keys.");
@@ -77,7 +99,8 @@ public class Runner {
 					FourSquareCipher fsc = new FourSquareCipher(keys);
 					try {
 						FileWriter fw = new FileWriter(new File(outputFile));
-						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(inputFile))));
+						BufferedReader br = new BufferedReader(
+								new InputStreamReader(new FileInputStream(new File(inputFile))));
 						String line = null;
 
 						while ((line = br.readLine()) != null) {
@@ -93,6 +116,23 @@ public class Runner {
 				}
 				case 5 -> {
 					out.println("Decrypting..." + '\n');
+					FourSquareCipher fsc = new FourSquareCipher(keys);
+					try {
+						FileWriter fw = new FileWriter(new File(outputFile));
+						BufferedReader br = new BufferedReader(
+								new InputStreamReader(new FileInputStream(new File(inputFile))));
+						String line = null;
+
+						while ((line = br.readLine()) != null) {
+							fw.write(fsc.decrypt(line) + "\n");
+						}
+
+						br.close();
+						fw.flush();
+						fw.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 				case 6 -> {
 					keepRunning = false;
@@ -105,7 +145,7 @@ public class Runner {
 	}
 
 	public static void showOptions() {
-		out.println("(1) Specify Text File to Encrypt");
+		out.println("(1) Specify Input Details");
 		out.println("(2) Specify Output File (default: ./out.txt)");
 		out.println("(3) Enter Cipher Key");
 		out.println("(4) Encrypt Text File");

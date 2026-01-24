@@ -35,8 +35,7 @@ public class FourSquareKey {
                 cleanKey.append(key[i]);
             }
         }
-
-        System.out.println(cleanKey);
+        
         return cleanKey.toString();
     }
 

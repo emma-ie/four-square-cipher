@@ -102,7 +102,23 @@ public class FourSquareCipher {
         return coords;
     }
 
-    public void decrypt(String filePath) {
+    public String decrypt(String cipherText) {
         // decrypt file at file path provided
+        FourSquareUtils fsu = new FourSquareUtils();
+        String[] bigrams = fsu.createBigrams(cipherText);
+        char char1;
+        char char2;
+        int[] coords1 = new int[2];
+        int[] coords2 = new int[2];
+        StringBuilder plaintext = new StringBuilder();
+        for (int i = 0; i < bigrams.length; i++) {
+            char1 = bigrams[i].charAt(0);
+            char2 = bigrams[i].charAt(1);
+            coords1 = findCoords(char1, topRightRowStart, topRightRowEnd, topRightColStart, topRightColEnd);
+            coords2 = findCoords(char2, botLeftRowStart, botLeftRowEnd, botLeftColStart, botLeftColEnd);
+            plaintext.append(fourSquare[coords1[0]][coords2[1]]);
+            plaintext.append(fourSquare[coords2[0]][coords1[1]]);
+        }
+        return plaintext.toString();
     }
 }
