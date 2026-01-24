@@ -2,7 +2,7 @@ package ie.atu.sw;
 
 import static java.lang.System.out;
 import java.util.Scanner;
-//import java.io.*;
+import java.io.*;
 
 public class Runner {
 	public static void main(String[] args) throws Exception {
@@ -61,7 +61,6 @@ public class Runner {
 							out.println("Your keys are " + rawKey1 + " and " + rawKey2);
 						}
 						case 3 -> {
-							out.println("Do it yourself");
 							rawKey1 = "ZGPTFOIHMUWDRCNYKEQAXVSBL";
 							rawKey2 = "MFNBDCRHSAXYOGVITUEWLQZKP";
 						}
@@ -72,23 +71,28 @@ public class Runner {
 					}
 					FourSquareKey fsk = new FourSquareKey(rawKey1, rawKey2);
 					keys = fsk.getKeys();
-					// out.print("Enter cipher keyword or leave blank to randomly generate: ");
-					// scanner.nextLine();
-					// userCipher1 = scanner.nextLine();
-					// userCipher2 = "lalala";
-					// if (userCipher1.trim().isEmpty()) {
-					// 	out.print("Generating random cipher" + '\n');
-					// } else {
-					// 	out.print("Cipher key inputted: " + userCipher1 + '\n');
-					// }
-					// out.print('\n');
-					// FourSquareCipher fsc = new FourSquareCipher(userCipher1, userCipher2);
 				}
 				case 4 -> {
 					out.println("Encrypting..." + '\n');
+					FourSquareCipher fsc = new FourSquareCipher(keys);
+					try {
+						FileWriter fw = new FileWriter(new File(outputFile));
+						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(inputFile))));
+						String line = null;
+
+						while ((line = br.readLine()) != null) {
+							fw.write(fsc.encrypt(line) + "\n");
+						}
+
+						br.close();
+						fw.flush();
+						fw.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 				case 5 -> {
-					out.println("Surprise !" + '\n');
+					out.println("Decrypting..." + '\n');
 				}
 				case 6 -> {
 					keepRunning = false;
