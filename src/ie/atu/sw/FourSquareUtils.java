@@ -3,6 +3,7 @@ package ie.atu.sw;
 public class FourSquareUtils {
     public String cleanPlaintext(String plaintext) {
         plaintext = plaintext.toUpperCase();
+        plaintext = plaintext.replace("J", "I");
         // replace everything that is not A-Z. Reference:
         // https://www.geeksforgeeks.org/java/remove-all-non-alphabetical-characters-of-a-string-in-java/
         plaintext = plaintext.replaceAll("[^A-Z]", "");

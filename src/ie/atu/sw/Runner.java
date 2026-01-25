@@ -3,6 +3,7 @@ package ie.atu.sw;
 import static java.lang.System.out;
 import java.util.Scanner;
 import java.io.*;
+import java.net.*;
 
 public class Runner {
 	public static void main(String[] args) throws Exception {
@@ -14,10 +15,10 @@ public class Runner {
 		out.println("************************************************************");
 
 		boolean keepRunning = true;
-		boolean isURL = false;
 		Scanner scanner = new Scanner(System.in);
 		String inputFile = null;
 		String inputURL = null;
+		boolean isURL = false;
 		String outputFile = "./out.txt";
 		String[] keys = null;
 
@@ -38,11 +39,13 @@ public class Runner {
 							out.print("Please specify the text file to encrypt: ");
 							inputFile = scanner.next();
 							out.println("Input file is " + inputFile + '\n');
+							isURL = false;
 						}
 						case 2 -> {
-							out.print("Please specify the URL to encrypt: ");
+							out.print(
+									"Please specify a .txt file hosted on a URL to encrypt (e.g. https://www.gutenberg.org/cache/epub/77764/pg77764.txt): ");
 							inputURL = scanner.next();
-							out.println("Input file is " + inputURL + '\n');
+							out.println("Input URL is " + inputURL + '\n');
 							isURL = true;
 						}
 					}
@@ -54,17 +57,14 @@ public class Runner {
 				}
 				case 3 -> {
 					out.println("Please select: ");
-					out.println("(1) Input 1 Key");
-					out.println("(2) Input 2 Keys");
+					out.println("(1) Input 1 Key to fill both encryption quadrants");
+					out.println("(2) Input 2 Keys to fill each encryption quadrant");
 					out.println("(3) Generate Random Key");
-					out.println("(4) Back to Main Menu");
+					out.println("(4) Hardcoded Key from Assignment Brief");
+					out.println("(5) Back to Main Menu");
 					int userKeyChoice = Integer.parseInt(scanner.next());
-					String rawKey1;
-					String rawKey2;
-
-					if (userKeyChoice > 4){
-						out.println("Not a valid option. Try again.");
-					}
+					String rawKey1 = null;
+					String rawKey2 = null;
 
 					switch (userKeyChoice) {
 						case 1 -> {
@@ -83,39 +83,81 @@ public class Runner {
 							out.println("Your keys are " + rawKey1 + " and " + rawKey2);
 						}
 						case 3 -> {
+							rawKey1 = null;
+							rawKey2 = null;
+						}
+						case 4 -> {
 							rawKey1 = "ZGPTFOIHMUWDRCNYKEQAXVSBL";
 							rawKey2 = "MFNBDCRHSAXYOGVITUEWLQZKP";
+						}
+						case 5 -> {
+							out.println("\nNavigating back to main menu...\n");
+							break;
 						}
 						default -> {
-							rawKey1 = "ZGPTFOIHMUWDRCNYKEQAXVSBL";
-							rawKey2 = "MFNBDCRHSAXYOGVITUEWLQZKP";
+							out.println("\n [ERROR] Invalid selection, please try again.\n");
+							break;
 						}
 					}
-					FourSquareKey fsk = new FourSquareKey(rawKey1, rawKey2);
-					keys = fsk.getKeys();
+					if (rawKey1 == null || rawKey2 == null) {
+						FourSquareKey fsk = new FourSquareKey();
+						keys = fsk.getKeys();
+					} else {
+						FourSquareKey fsk = new FourSquareKey(rawKey1, rawKey2);
+						keys = fsk.getKeys();
+					}
 				}
 				case 4 -> {
 					out.println("Encrypting..." + '\n');
+					if (inputFile == null && inputURL == null) {
+						out.println("\n[Error] No input file or url provided. Please provide one using option (1) in the menu.\n");
+						break;
+					}
+					if (keys == null){
+						out.println("\n[WARNING] No key provided. Using a randomly generated key for encryption.");
+						FourSquareKey fsc = new FourSquareKey();
+						keys = fsc.getKeys();
+					}
 					FourSquareCipher fsc = new FourSquareCipher(keys);
-					try {
-						FileWriter fw = new FileWriter(new File(outputFile));
-						BufferedReader br = new BufferedReader(
-								new InputStreamReader(new FileInputStream(new File(inputFile))));
-						String line = null;
+					if (!isURL) {
+						try {
+							FileWriter fw = new FileWriter(new File(outputFile));
+							BufferedReader br = new BufferedReader(
+									new InputStreamReader(new FileInputStream(new File(inputFile))));
+							String line = null;
 
-						while ((line = br.readLine()) != null) {
-							fw.write(fsc.encrypt(line) + "\n");
+							while ((line = br.readLine()) != null) {
+								fw.write(fsc.encrypt(line) + "\n");
+							}
+
+							br.close();
+							fw.flush();
+							fw.close();
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-
-						br.close();
-						fw.flush();
-						fw.close();
-					} catch (Exception e) {
-						e.printStackTrace();
+					} else {
+						try {
+							URL connection = new URL(inputURL);
+							FileWriter fw = new FileWriter(new File(outputFile));
+							BufferedReader br = new BufferedReader(new InputStreamReader(connection.openStream()));
+							String line;
+							while ((line = br.readLine()) != null) {
+								fw.write(fsc.encrypt(line) + "\n");
+							}
+							br.close();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 				case 5 -> {
 					out.println("Decrypting..." + '\n');
+					if (keys == null){
+						out.print(ConsoleColour.RED_BOLD_BRIGHT);
+						out.println("\n[WARNING] No key provided for decryption. Please provide one before decrypting.\n");
+						break;
+					}
 					FourSquareCipher fsc = new FourSquareCipher(keys);
 					try {
 						FileWriter fw = new FileWriter(new File(outputFile));
@@ -135,6 +177,24 @@ public class Runner {
 					}
 				}
 				case 6 -> {
+					if (keys == null) {
+						out.print("No keys. Please visit menu option (3) and try again." + '\n');
+					} else {
+						out.println("Key = " + keys[0] + keys[1]);
+					}
+
+				}
+				case 7 -> {
+					if (keys == null) {
+						out.print("No keys. Please visit menu option (3) and try again." + '\n');
+					} else {
+						FileWriter fw = new FileWriter(new File("./key.txt"));
+						fw.write(keys[0] + keys[1]);
+						fw.flush();
+						fw.close();
+					}
+				}
+				case 8 -> {
 					keepRunning = false;
 				}
 				default -> out.println("[Error] Invalid Selection");
@@ -145,89 +205,14 @@ public class Runner {
 	}
 
 	public static void showOptions() {
+		out.print(ConsoleColour.PURPLE_BRIGHT);
 		out.println("(1) Specify Input Details");
 		out.println("(2) Specify Output File (default: ./out.txt)");
 		out.println("(3) Enter Cipher Key");
-		out.println("(4) Encrypt Text File");
-		out.println("(5) Decrypt Text File");
-		out.println("(?) Optional Extras...");
-		out.println("(6) Quit");
+		out.println("(4) Encrypt");
+		out.println("(5) Decrypt");
+		out.println("(6) Print Key");
+		out.println("(7) Export Key to File");
+		out.println("(8) Quit");
 	}
 }
-
-// // Output a menu of options and solicit text from the user
-// out.print(ConsoleColour.BLACK_BOLD_BRIGHT);
-// out.print("Select Option [1-?]>");
-// out.println();
-
-// // You may want to include a progress meter in you assignment!
-// out.print(ConsoleColour.YELLOW); // Change the colour of the console
-// text
-// int size = 100; // The size of the meter. 100 equates to 100%
-// for (int i = 0; i < size; i++) { // The loop equates to a sequence of
-// processing steps
-// printProgress(i + 1, size); // After each (some) steps, update the progress
-// meter
-// Thread.sleep(10); // Slows things down so the animation is visible
-// }
-
-// }
-
-/*
- * Terminal Progress Meter
- * -----------------------
- * You might find the progress meter below useful. The progress effect
- * works best if you call this method from inside a loop and do not call
- * out.println(....) until the progress meter is finished.
- * 
- * Please note the following carefully:
- * 
- * 1) The progress meter will NOT work in the Eclipse console, but will
- * work on Windows (DOS), Mac and Linux terminals.
- * 
- * 2) The meter works by using the line feed character "\r" to return to
- * the start of the current line and writes out the updated progress
- * over the existing information. If you output any text between
- * calling this method, i.e. out.println(....), then the next
- * call to the progress meter will output the status to the next line.
- * 
- * 3) If the variable size is greater than the terminal width, a new line
- * escape character "\n" will be automatically added and the meter won't
- * work properly.
- * 
- * 
- */
-// public static void printProgress(int index, int total) {
-// if (index > total)
-// return; // Out of range
-// int size = 50; // Must be less than console width
-// char done = '█'; // Change to whatever you like.
-// char todo = '░'; // Change to whatever you like.
-
-// // Compute basic metrics for the meter
-// int complete = (100 * index) / total;
-// int completeLen = size * complete / 100;
-
-// /*
-// * A StringBuilder should be used for string concatenation inside a
-// * loop. However, as the number of loop iterations is small, using
-// * the "+" operator may be more efficient as the instructions can
-// * be optimized by the compiler. Either way, the performance overhead
-// * will be marginal.
-// */
-// StringBuilder sb = new StringBuilder();
-// sb.append("[");
-// for (int i = 0; i < size; i++) {
-// sb.append((i < completeLen) ? done : todo);
-// }
-
-// /*
-// * The line feed escape character "\r" returns the cursor to the
-// * start of the current line. Calling print(...) overwrites the
-// * existing line and creates the illusion of an animation.
-// */
-// out.print("\r" + sb + "] " + complete + "%");
-
-// // Once the meter reaches its max, move to a new line.
-// if (done == total)
-// out.println("\n");

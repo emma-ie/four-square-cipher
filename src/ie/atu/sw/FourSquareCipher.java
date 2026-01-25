@@ -58,7 +58,7 @@ public class FourSquareCipher {
         }
     }
 
-    private void printFourSquare() {
+    public void printFourSquare() {
         // used for debugging
         for (int i = 0; i < fourSquare.length; i++) {
             for (int j = 0; j < fourSquare[i].length; j++) {
